@@ -217,18 +217,22 @@ if (!$r) { header('Location: historico.php'); exit; }
           <label>Técnico</label>
           <select name="tecnico" required>
             <option value="">Selecciona técnico</option>
-            <?php foreach(['TECNICO 1','TECNICO 2','EVANDHER ZARCO'] as $t): ?>
-            <option value="<?=$t?>" <?= $r['tecnico']===$t ? 'selected':'' ?>><?=$t?></option>
-            <?php endforeach; ?>
+            <?php
+            $res_tec = mysqli_query($conex, "SELECT nombre FROM tecnicos WHERE activo=1 ORDER BY nombre ASC");
+            while ($t = mysqli_fetch_assoc($res_tec)): ?>
+            <option value="<?= htmlspecialchars($t['nombre']) ?>" <?= $r['tecnico']===$t['nombre'] ? 'selected':'' ?>><?= htmlspecialchars($t['nombre']) ?></option>
+            <?php endwhile; ?>
           </select>
         </div>
         <div class="form-group">
           <label>Gerente</label>
           <select name="gerente" required>
             <option value="">Selecciona gerente</option>
-            <?php foreach(['KOSBY HERNANDEZ','GERENTE 2','GERENTE 3'] as $g): ?>
-            <option value="<?=$g?>" <?= $r['gerente']===$g ? 'selected':'' ?>><?=$g?></option>
-            <?php endforeach; ?>
+            <?php
+            $res_ger = mysqli_query($conex, "SELECT nombre FROM gerentes WHERE activo=1 ORDER BY nombre ASC");
+            while ($g = mysqli_fetch_assoc($res_ger)): ?>
+            <option value="<?= htmlspecialchars($g['nombre']) ?>" <?= $r['gerente']===$g['nombre'] ? 'selected':'' ?>><?= htmlspecialchars($g['nombre']) ?></option>
+            <?php endwhile; ?>
           </select>
         </div>
       </div>
