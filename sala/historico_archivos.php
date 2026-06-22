@@ -1,6 +1,7 @@
 <?php
 require 'db.php';
 require_once 'push_helpers.php'; // consultarPagosManualesOficina() — temporal, mientras dure la captura manual en oficina
+require_once 'fecha_helpers.php'; // fechaOperativa() — IMPORTANTE: si se cambia la regla horaria, cambiar también en cerrar_dia.php
 
 $meses_es = ['','Enero','Febrero','Marzo','Abril','Mayo','Junio',
              'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
@@ -10,8 +11,9 @@ $meses_archivo = ['','ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO',
 
 $carpeta = '\\\\172.26.0.149\\pagosmes\\';
 
-$mes_sel  = (int)($_GET['mes']  ?? date('n'));
-$anio_sel = (int)($_GET['anio'] ?? date('Y'));
+$_fecha_op = fechaOperativa();
+$mes_sel  = (int)($_GET['mes']  ?? date('n', strtotime($_fecha_op)));
+$anio_sel = (int)($_GET['anio'] ?? date('Y', strtotime($_fecha_op)));
 $dia_sel  = (int)($_GET['dia']  ?? 0);
 
 // Buscar archivo del mes seleccionado
