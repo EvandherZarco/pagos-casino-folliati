@@ -1,0 +1,70 @@
+/* ============================= */
+/* ===== ZARCOMECATRONICS ===== */
+/* ============================= */
+
+/* Badge en menú principal */
+.zm-badge {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 28px;
+    padding: 10px 16px;
+    background: linear-gradient(135deg, rgba(56,4,241,0.08), rgba(42,82,152,0.12));
+    border: 1px solid rgba(56,4,241,0.2);
+    border-radius: 12px;
+    width: 300px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.zm-hex {
+    width: 38px;
+    height: 38px;
+    background: linear-gradient(135deg, #3804f1, #2a5298);
+    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 11px;
+    font-weight: 900;
+    letter-spacing: 0.5px;
+    flex-shrink: 0;
+}
+
+.zm-info {
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+}
+
+.zm-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: #3804f1;
+    letter-spacing: 0.5px;
+}
+
+.zm-sub {
+    font-size: 10px;
+    color: #888;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+/* Footer en todas las demás páginas */
+.zm-footer {
+    text-align: center;
+    padding: 18px 0 10px 0;
+    margin-top: 30px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    color: rgba(255,255,255,0.35);
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+}
+
+.zm-footer span {
+    color: rgba(255,255,255,0.55);
+    font-weight: 700;
+}

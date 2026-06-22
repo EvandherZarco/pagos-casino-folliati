@@ -1,0 +1,18 @@
+# Datos reales del casino - nunca a Git 
+*.sql 
+*.xls 
+*.xlsx 
+*.csv 
+ 
+# Credenciales 
+oficina/conexion.php 
+sala/db.php 
+ 
+# Vendor y dependencias 
+vendor/ 
+ 
+# Logs y temporales 
+*.log 
+oficina/historiales/ 
+importar_sala_log.txt 
+prueba_recibir_pagos.html 
