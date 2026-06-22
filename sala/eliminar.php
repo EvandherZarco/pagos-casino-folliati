@@ -1,7 +1,14 @@
 <?php
 require 'db.php';
-require 'renumerar.php';      // incluye push_helpers.php internamente
+require 'renumerar.php';
 require_once 'push_helpers.php';
+
+// Solo accesible desde el panel — verificar sesión activa
+if (session_status() === PHP_SESSION_NONE) session_start();
+if (empty($_SESSION['panel_usuario'])) {
+    header('Location: panel/login.php');
+    exit;
+}
 
 $id = (int)($_GET['id'] ?? 0);
 if ($id) {

@@ -179,6 +179,7 @@ $total_combinado_dia = (float)$total_dia + (float)$total_manual_dia;
   <a href="historico.php">Histórico</a>
   <a href="historico_archivos.php" class="active">Archivos</a>
   <a href="cerrar_dia.php">Cerrar Día</a>
+  <a href="panel/login.php">Panel</a>
 </nav>
 
 <div class="container" style="max-width:960px;">

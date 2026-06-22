@@ -205,6 +205,7 @@ $push_pendiente_previo = mysqli_fetch_assoc(mysqli_query($conex,
   <a href="lista.php">Consultar</a>
   <a href="historico.php">Histórico</a>
   <a href="cerrar_dia.php" class="active">Cerrar Día</a>
+  <a href="panel/login.php">Panel</a>
 </nav>
 
 <div class="container">

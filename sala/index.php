@@ -53,6 +53,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <a href="lista.php">Consultar</a>
   <a href="historico.php">Histórico</a>
   <a href="cerrar_dia.php">Cerrar Día</a>
+  <a href="panel/login.php">Panel</a>
 </nav>
 
 <div class="container">
@@ -135,22 +136,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           <label>Técnico</label>
           <select name="tecnico" required>
             <option value="">Selecciona técnico</option>
-            <?php
-            $res_tec = mysqli_query($conex, "SELECT nombre FROM tecnicos WHERE activo=1 ORDER BY nombre ASC");
-            while ($t = mysqli_fetch_assoc($res_tec)): ?>
-            <option value="<?= htmlspecialchars($t['nombre']) ?>"><?= htmlspecialchars($t['nombre']) ?></option>
-            <?php endwhile; ?>
+            <?php foreach(['TECNICO 1','TECNICO 2','EVANDHER ZARCO'] as $t): ?>
+            <option value="<?= $t ?>"><?= $t ?></option>
+            <?php endforeach; ?>
           </select>
         </div>
         <div class="form-group">
           <label>Gerente</label>
           <select name="gerente" required>
             <option value="">Selecciona gerente</option>
-            <?php
-            $res_ger = mysqli_query($conex, "SELECT nombre FROM gerentes WHERE activo=1 ORDER BY nombre ASC");
-            while ($g = mysqli_fetch_assoc($res_ger)): ?>
-            <option value="<?= htmlspecialchars($g['nombre']) ?>"><?= htmlspecialchars($g['nombre']) ?></option>
-            <?php endwhile; ?>
+            <?php foreach(['KOSBY HERNANDEZ','GERENTE 2','GERENTE 3'] as $g): ?>
+            <option value="<?= $g ?>"><?= $g ?></option>
+            <?php endforeach; ?>
           </select>
         </div>
       </div>

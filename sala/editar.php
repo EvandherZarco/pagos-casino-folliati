@@ -2,8 +2,16 @@
 require 'db.php';
 require 'renumerar.php';
 
+// Solo accesible desde el panel — verificar sesión activa
+if (session_status() === PHP_SESSION_NONE) session_start();
+if (empty($_SESSION['panel_usuario'])) {
+    header('Location: panel/login.php?redir=' . urlencode($_SERVER['REQUEST_URI']));
+    exit;
+}
+
 $id = (int)($_GET['id'] ?? 0);
 if (!$id) { header('Location: lista.php'); exit; }
+$origen = $_POST['origen'] ?? $_GET['origen'] ?? '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $turno       = mysqli_real_escape_string($conex, $_POST['turno'] ?? '');
@@ -18,16 +26,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $id_cliente  = mysqli_real_escape_string($conex, $_POST['id_cliente'] ?? '');
     $tecnico     = mysqli_real_escape_string($conex, $_POST['tecnico'] ?? '');
     $gerente     = mysqli_real_escape_string($conex, $_POST['gerente'] ?? '');
+    $hora        = mysqli_real_escape_string($conex, $_POST['hora'] ?? '');
 
     mysqli_query($conex,
         "UPDATE pagos SET turno='$turno', asset='$asset', modelo='$modelo', numero_serie='$numero_serie',
          proveedor='$proveedor', cantidad='$cantidad', apuesta='$apuesta', nivel='$nivel',
-         cliente='$cliente', id_cliente='$id_cliente', tecnico='$tecnico', gerente='$gerente'
+         cliente='$cliente', id_cliente='$id_cliente', tecnico='$tecnico', gerente='$gerente', hora='$hora'
          WHERE id=$id"
     );
     $rf = mysqli_fetch_assoc(mysqli_query($conex, "SELECT fecha FROM pagos WHERE id=$id"));
     if ($rf) renumerar_dia($conex, $rf['fecha']);
-    header("Location: imprimir.php?id=$id");
+    if ($origen === 'panel') {
+        header("Location: panel/index.php");
+    } else {
+        header("Location: imprimir.php?id=$id");
+    }
     exit;
 }
 
@@ -55,6 +68,7 @@ if (!$r) { header('Location: lista.php'); exit; }
 
 <div class="container">
   <form method="post" id="editForm" autocomplete="off">
+    <input type="hidden" name="origen" value="<?= htmlspecialchars($origen) ?>">
 
     <!-- TURNO -->
     <div class="form-section">

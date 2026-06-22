@@ -111,6 +111,7 @@ $total_combinado = (float)$total + (float)$total_manual;
   <a href="lista.php" class="active">Consultar</a>
   <a href="historico.php">Histórico</a>
   <a href="cerrar_dia.php">Cerrar Día</a>
+  <a href="panel/login.php">Panel</a>
 </nav>
 
 <div class="container" style="max-width:960px;">
@@ -192,12 +193,6 @@ $total_combinado = (float)$total + (float)$total_manual;
             <td style="font-size:0.88rem;"><?= htmlspecialchars($p['tecnico']) ?></td>
             <td style="display:flex;gap:6px;">
               <a href="imprimir.php?id=<?= $p['id'] ?>" class="btn btn-ghost" style="font-size:0.8rem;padding:5px 10px;" title="Imprimir">🖨</a>
-              <a href="editar.php?id=<?= $p['id'] ?>" class="btn btn-ghost" style="font-size:0.8rem;padding:5px 10px;" title="Editar">✏️</a>
-              <a href="eliminar.php?id=<?= $p['id'] ?>"
-                 class="btn btn-ghost"
-                 style="font-size:0.8rem;padding:5px 10px;color:#e74c3c;border-color:#e74c3c;"
-                 title="Eliminar"
-                 onclick="return confirm('¿Estás seguro de que quieres eliminar este pago?\nEsta acción no se puede deshacer.<?= (int)$p['cerrado'] === 1 ? '\\n\\nEste pago YA está cerrado y sincronizado con oficina — se notificará el borrado allá también.' : '' ?>')">🗑️</a>
             </td>
           </tr>
           <?php endwhile; endif; ?>

@@ -21,18 +21,27 @@ const PUSH_MAX_INTENTOS = 20;
  *
  * Devuelve ['ok' => bool, 'respuesta' => string|null, 'error' => string|null]
  */
+function _pushConfig(): array {
+    $archivo = __DIR__ . '/push_config.json';
+    if (file_exists($archivo)) {
+        $c = json_decode(file_get_contents($archivo), true);
+        if ($c && isset($c['ip1'], $c['ip2'])) return $c;
+    }
+    // Fallback a IPs conocidas si no existe el archivo de config
+    return ['ip1' => '10.10.10.65', 'ip2' => '172.26.0.149', 'puerto' => '80'];
+}
+
 function enviarPushOficina(array $payload, string $endpoint = 'recibir_pagos.php'): array {
-    $ips = [
-        '10.10.10.65',   // subred 10.10.10.x
-        '172.26.0.149',  // subred 172.26.0.x
-    ];
+    $cfg    = _pushConfig();
+    $puerto = $cfg['puerto'] ?? '80';
+    $ips    = [$cfg['ip1'], $cfg['ip2']];
     // ⚠️ Ajustar /reporte/ si la carpeta de oficina tiene otro nombre
 
     $json = json_encode($payload);
     $ultimoError = '';
 
     foreach ($ips as $ip) {
-        $url = "http://{$ip}/reporte/{$endpoint}";
+        $url = "http://{$ip}:{$puerto}/reporte/{$endpoint}";
         $ch = curl_init($url);
         curl_setopt_array($ch, [
             CURLOPT_POST => true,
@@ -122,13 +131,12 @@ function guardarPushEvento($conex, int $idSala, string $tipo, array $payload, st
  * Devuelve un arreglo de filas (vacío si falla o si no hay nada).
  */
 function consultarPagosManualesOficina(string $fecha): array {
-    $ips = [
-        '10.10.10.65',
-        '172.26.0.149',
-    ];
+    $cfg    = _pushConfig();
+    $puerto = $cfg['puerto'] ?? '80';
+    $ips    = [$cfg['ip1'], $cfg['ip2']];
 
     foreach ($ips as $ip) {
-        $url = "http://{$ip}/reporte/listar_manual.php?fecha=" . urlencode($fecha);
+        $url = "http://{$ip}:{$puerto}/reporte/listar_manual.php?fecha=" . urlencode($fecha);
         $ch = curl_init($url);
         curl_setopt_array($ch, [
             CURLOPT_RETURNTRANSFER => true,

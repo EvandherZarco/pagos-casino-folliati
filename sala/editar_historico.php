@@ -22,13 +22,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $tecnico      = mysqli_real_escape_string($conex, $_POST['tecnico'] ?? '');
     $gerente      = mysqli_real_escape_string($conex, $_POST['gerente'] ?? '');
 
-    $hora = mysqli_real_escape_string(\$conex, \$_POST['hora'] ?? '');
-    mysqli_query(\$conex,
-        "UPDATE pagos SET turno='\$turno', asset='\$asset', modelo='\$modelo',
-         numero_serie='\$numero_serie', proveedor='\$proveedor', cantidad='\$cantidad',
-         apuesta='\$apuesta', nivel='\$nivel', cliente='\$cliente',
-         id_cliente='\$id_cliente', tecnico='\$tecnico', gerente='\$gerente', hora='\$hora'
-         WHERE id=\$id"
+    $hora = mysqli_real_escape_string($conex, $_POST['hora'] ?? '');
+    mysqli_query($conex,
+        "UPDATE pagos SET turno='$turno', asset='$asset', modelo='$modelo',
+         numero_serie='$numero_serie', proveedor='$proveedor', cantidad='$cantidad',
+         apuesta='$apuesta', nivel='$nivel', cliente='$cliente',
+         id_cliente='$id_cliente', tecnico='$tecnico', gerente='$gerente', hora='$hora'
+         WHERE id=$id"
     );
 
     // Regenerar el XLS del mes correspondiente
