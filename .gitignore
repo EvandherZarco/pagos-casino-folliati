@@ -16,3 +16,4 @@ vendor/
 oficina/historiales/ 
 importar_sala_log.txt 
 prueba_recibir_pagos.html 
+!schema_sala.sql 
