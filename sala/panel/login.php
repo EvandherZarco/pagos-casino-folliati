@@ -26,7 +26,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $error = 'Usuario o contraseña incorrectos.';
 }
 
-// Separar usuarios por rol para el dropdown
 $gerentes_list = [];
 $tecnicos_list = [];
 foreach (PANEL_USUARIOS as $key => $u) {
@@ -77,7 +76,6 @@ $usuario_sel = strtoupper($_POST['usuario'] ?? '');
       text-transform: uppercase;
       margin-bottom: 6px;
     }
-    .login-card select,
     .login-card input {
       width: 100%;
       background: var(--input-bg);
@@ -89,15 +87,6 @@ $usuario_sel = strtoupper($_POST['usuario'] ?? '');
       font-size: 1rem;
       box-sizing: border-box;
     }
-    .login-card select option[disabled] {
-      color: var(--text-muted);
-      font-style: italic;
-    }
-    .login-card select optgroup {
-      font-size: 0.78rem;
-      letter-spacing: 1px;
-    }
-    .login-card select:focus,
     .login-card input:focus { outline: none; border-color: var(--gold); }
     .error-msg {
       background: rgba(231,76,60,0.15);
@@ -125,6 +114,76 @@ $usuario_sel = strtoupper($_POST['usuario'] ?? '');
     .btn-login:hover { opacity: 0.9; }
     .volver { display:block; text-align:center; margin-top:18px; font-size:0.85rem; color:var(--text-muted); text-decoration:none; }
     .volver:hover { color: var(--gold); }
+
+    /* ── Custom dropdown ── */
+    .custom-select { position: relative; }
+    .custom-select-trigger {
+      width: 100%;
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 10px 36px 10px 14px;
+      border-radius: var(--radius);
+      font-family: inherit;
+      font-size: 1rem;
+      box-sizing: border-box;
+      cursor: pointer;
+      text-align: left;
+      user-select: none;
+      position: relative;
+    }
+    .custom-select-trigger::after {
+      content: '▾';
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      pointer-events: none;
+    }
+    .custom-select-trigger.open { border-color: var(--gold); }
+    .custom-select-trigger.placeholder { color: var(--text-muted); font-style: italic; }
+
+    .custom-dropdown {
+      display: none;
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 0; right: 0;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      z-index: 100;
+      overflow: hidden;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    }
+    .custom-dropdown.open { display: block; }
+
+    .dropdown-group-label {
+      font-size: 0.7rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--gold);
+      padding: 8px 14px 4px;
+      background: rgba(212,160,23,0.08);
+      border-bottom: 1px solid var(--border);
+    }
+    .dropdown-option {
+      padding: 10px 14px;
+      font-size: 0.95rem;
+      color: var(--text);
+      cursor: pointer;
+      transition: background 0.15s;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+    .dropdown-option:last-child { border-bottom: none; }
+    .dropdown-option:hover { background: rgba(255,255,255,0.06); }
+    .dropdown-option.selected { color: var(--gold); background: rgba(212,160,23,0.08); }
+    .dropdown-option .role-badge {
+      font-size: 0.7rem;
+      letter-spacing: 1px;
+      color: var(--text-muted);
+      margin-right: 6px;
+    }
   </style>
 </head>
 <body>
@@ -140,28 +199,34 @@ $usuario_sel = strtoupper($_POST['usuario'] ?? '');
     <div class="error-msg">No tienes permiso para acceder a esa sección.</div>
     <?php endif; ?>
 
-    <form method="post">
+    <form method="post" id="login-form">
       <input type="hidden" name="redir" value="<?= htmlspecialchars($redir) ?>">
+      <input type="hidden" name="usuario" id="usuario-hidden" value="<?= htmlspecialchars($usuario_sel) ?>">
 
       <div class="form-group">
         <label>Usuario</label>
-        <select name="usuario" required>
-          <option value="" disabled <?= !$usuario_sel ? 'selected' : '' ?>>— Selecciona un usuario —</option>
-          <optgroup label="GERENTES">
+        <div class="custom-select" id="custom-select">
+          <div class="custom-select-trigger placeholder" id="select-trigger">— Selecciona un usuario —</div>
+          <div class="custom-dropdown" id="custom-dropdown">
+
+            <div class="dropdown-group-label">GERENTES</div>
             <?php foreach ($gerentes_list as $key => $nombre): ?>
-            <option value="<?= $key ?>" <?= $usuario_sel === $key ? 'selected' : '' ?>>
-              GT - <?= htmlspecialchars($nombre) ?>
-            </option>
+            <div class="dropdown-option <?= $usuario_sel === $key ? 'selected' : '' ?>"
+                 data-value="<?= $key ?>">
+              <span class="role-badge">GT</span><?= htmlspecialchars($nombre) ?>
+            </div>
             <?php endforeach; ?>
-          </optgroup>
-          <optgroup label="TÉCNICOS">
+
+            <div class="dropdown-group-label">TÉCNICOS</div>
             <?php foreach ($tecnicos_list as $key => $nombre): ?>
-            <option value="<?= $key ?>" <?= $usuario_sel === $key ? 'selected' : '' ?>>
-              TEC - <?= htmlspecialchars($nombre) ?>
-            </option>
+            <div class="dropdown-option <?= $usuario_sel === $key ? 'selected' : '' ?>"
+                 data-value="<?= $key ?>">
+              <span class="role-badge">TEC</span><?= htmlspecialchars($nombre) ?>
+            </div>
             <?php endforeach; ?>
-          </optgroup>
-        </select>
+
+          </div>
+        </div>
       </div>
 
       <div class="form-group">
@@ -173,5 +238,56 @@ $usuario_sel = strtoupper($_POST['usuario'] ?? '');
     </form>
     <a href="../index.php" class="volver">← Volver a sala</a>
   </div>
+
+  <script>
+    const trigger   = document.getElementById('select-trigger');
+    const dropdown  = document.getElementById('custom-dropdown');
+    const hidden    = document.getElementById('usuario-hidden');
+    const options   = document.querySelectorAll('.dropdown-option');
+    const form      = document.getElementById('login-form');
+
+    // Si ya hay un valor preseleccionado (error de login), mostrar la etiqueta
+    <?php if ($usuario_sel): ?>
+    (function() {
+      options.forEach(opt => {
+        if (opt.dataset.value === '<?= $usuario_sel ?>') {
+          trigger.textContent = opt.textContent.trim();
+          trigger.classList.remove('placeholder');
+        }
+      });
+    })();
+    <?php endif; ?>
+
+    trigger.addEventListener('click', function(e) {
+      e.stopPropagation();
+      dropdown.classList.toggle('open');
+      trigger.classList.toggle('open');
+    });
+
+    options.forEach(function(opt) {
+      opt.addEventListener('click', function() {
+        options.forEach(o => o.classList.remove('selected'));
+        opt.classList.add('selected');
+        hidden.value = opt.dataset.value;
+        trigger.textContent = opt.textContent.trim();
+        trigger.classList.remove('placeholder', 'open');
+        dropdown.classList.remove('open');
+      });
+    });
+
+    document.addEventListener('click', function() {
+      dropdown.classList.remove('open');
+      trigger.classList.remove('open');
+    });
+
+    // Validar que se seleccionó usuario antes de enviar
+    form.addEventListener('submit', function(e) {
+      if (!hidden.value) {
+        e.preventDefault();
+        trigger.style.borderColor = '#e74c3c';
+        setTimeout(() => trigger.style.borderColor = '', 1500);
+      }
+    });
+  </script>
 </body>
 </html>

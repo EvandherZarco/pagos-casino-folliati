@@ -17,7 +17,7 @@
     </div></div>
 
     <div class="input-group"><div class="input-container">
-        <input type="text" name="nombre" placeholder="Nombre" required>
+        <input type="text" name="nombre" placeholder="Nombre" required style="text-transform: uppercase">
     </div></div>
 
     <div class="input-group"><div class="input-container">
@@ -29,7 +29,7 @@
     </div></div>
 
     <div class="input-group"><div class="input-container">
-        <input type="text" name="comentario" placeholder="Comentario" required>
+        <input type="text" name="comentario" placeholder="Comentario" required style="text-transform: uppercase">
     </div></div>
 
     <div class="input-group"><div class="input-container">

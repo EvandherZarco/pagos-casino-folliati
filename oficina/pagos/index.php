@@ -21,15 +21,15 @@
     </div></div>
 
     <div class="input-group"><div class="input-container">
-        <input type="text" name="proveedor" id="proveedor" placeholder="Proveedor" required>
+        <input type="text" name="proveedor" id="proveedor" placeholder="Proveedor" required style="text-transform: uppercase">
     </div></div>
 
     <div class="input-group"><div class="input-container">
-        <input type="text" name="cliente" placeholder="Cliente" required>
+        <input type="text" name="cliente" placeholder="Cliente" required style="text-transform: uppercase">
     </div></div>
 
     <div class="input-group"><div class="input-container">
-        <input type="text" name="tarjeta" placeholder="Tarjeta" required>
+        <input type="text" name="tarjeta" placeholder="Tarjeta" required style="text-transform: uppercase">
     </div></div>
 
     <div class="input-group"><div class="input-container">

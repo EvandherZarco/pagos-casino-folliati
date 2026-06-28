@@ -16,14 +16,14 @@ if (isset($_POST['send'])) {
     if ($vacio) {
         echo "<h3 class='error'>Llena todos los campos</h3>";
     } else {
-        $proveedor      = trim($_POST['proveedor']);
-        $tecnico        = trim($_POST['tecnico']);
-        $hora_inicial   = trim($_POST['hora_inicial']);
-        $hora_final     = trim($_POST['hora_final']);
-        $ingreso_al_site = trim($_POST['ingreso_al_site']);
-        $actividades    = trim($_POST['actividades']);
-        $fecha          = trim($_POST['fecha']);
-        $turno          = trim($_POST['turno']);
+        $proveedor       = trim($_POST['proveedor']);
+        $tecnico         = trim($_POST['tecnico']);
+        $hora_inicial    = trim($_POST['hora_inicial']);
+        $hora_final      = trim($_POST['hora_final']);
+        $ingreso_al_site = mb_strtoupper(trim($_POST['ingreso_al_site']), 'UTF-8');
+        $actividades     = mb_strtoupper(trim($_POST['actividades']), 'UTF-8');
+        $fecha           = trim($_POST['fecha']);
+        $turno           = trim($_POST['turno']);
 
         $stmt = mysqli_prepare($conex,
             "INSERT INTO proveedores (proveedor, tecnico, hora_inicial, hora_final, ingreso_al_site, actividades, fecha, turno)

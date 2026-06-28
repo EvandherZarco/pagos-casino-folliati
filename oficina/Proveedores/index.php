@@ -56,11 +56,11 @@
     </div></div>
 
     <div class="input-group"><div class="input-container">
-        <input type="text" name="ingreso_al_site" placeholder="Ingreso al site" required>
+        <input type="text" name="ingreso_al_site" placeholder="Ingreso al site" required style="text-transform: uppercase">
     </div></div>
 
     <div class="input-group"><div class="input-container">
-        <input type="text" name="actividades" placeholder="Actividades" required>
+        <input type="text" name="actividades" placeholder="Actividades" required style="text-transform: uppercase">
     </div></div>
 
     <div class="input-group"><div class="input-container">

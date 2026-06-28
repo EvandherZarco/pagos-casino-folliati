@@ -1,8 +1,23 @@
 <?php
 include("../conexion.php");
 if (isset($_POST['actualizar'])) {
-    $stmt = mysqli_prepare($conex, "UPDATE pagos SET fecha=?, asset=?, proveedor=?, cliente=?, tarjeta=?, nivel=?, cantidad=?, apuesta=?, gerente=?, tecnico=? WHERE id=?");
-    mysqli_stmt_bind_param($stmt, "ssssssssssi", $_POST['fecha'], $_POST['asset'], $_POST['proveedor'], $_POST['cliente'], $_POST['tarjeta'], $_POST['nivel'], $_POST['cantidad'], $_POST['apuesta'], $_POST['gerente'], $_POST['tecnico'], (int)$_POST['id']);
+    $id        = (int)$_POST['id'];
+    $fecha     = $_POST['fecha'];
+    $hora      = $_POST['hora'];
+    $asset     = $_POST['asset'];
+    $proveedor = mb_strtoupper($_POST['proveedor']);
+    $cliente   = mb_strtoupper($_POST['cliente']);
+    $tarjeta   = $_POST['tarjeta'];
+    $nivel     = $_POST['nivel'];
+    $cantidad  = $_POST['cantidad'];
+    $apuesta   = $_POST['apuesta'];
+    $gerente   = $_POST['gerente'];
+    $tecnico   = $_POST['tecnico'];
+
+    $stmt = mysqli_prepare($conex, "UPDATE pagos SET fecha=?, hora=?, asset=?, proveedor=?, cliente=?, tarjeta=?, nivel=?, cantidad=?, apuesta=?, gerente=?, tecnico=? WHERE id=?");
+    mysqli_stmt_bind_param($stmt, "sssssssssssi",
+        $fecha, $hora, $asset, $proveedor, $cliente,
+        $tarjeta, $nivel, $cantidad, $apuesta, $gerente, $tecnico, $id);
     mysqli_stmt_execute($stmt);
     header("Location: lista.php"); exit;
 }
@@ -14,9 +29,10 @@ $r = mysqli_fetch_assoc(mysqli_query($conex, "SELECT * FROM pagos WHERE id=".(in
     <h2>EDITAR PAGO</h2>
     <input type="hidden" name="id" value="<?= $r['id'] ?>">
     <div class="input-group"><div class="input-container"><input type="date" name="fecha" value="<?= $r['fecha'] ?>" required></div></div>
+    <div class="input-group"><div class="input-container"><input type="time" name="hora" value="<?= $r['hora'] ?>" required></div></div>
     <div class="input-group"><div class="input-container"><input type="number" name="asset" id="asset" value="<?= $r['asset'] ?>" required></div></div>
-    <div class="input-group"><div class="input-container"><input type="text" name="proveedor" id="proveedor" value="<?= htmlspecialchars($r['proveedor']) ?>" required></div></div>
-    <div class="input-group"><div class="input-container"><input type="text" name="cliente" value="<?= htmlspecialchars($r['cliente']) ?>" required></div></div>
+    <div class="input-group"><div class="input-container"><input type="text" name="proveedor" id="proveedor" value="<?= htmlspecialchars($r['proveedor']) ?>" required style="text-transform:uppercase;"></div></div>
+    <div class="input-group"><div class="input-container"><input type="text" name="cliente" value="<?= htmlspecialchars($r['cliente']) ?>" required style="text-transform:uppercase;"></div></div>
     <div class="input-group"><div class="input-container"><input type="text" name="tarjeta" value="<?= htmlspecialchars($r['tarjeta']) ?>" required></div></div>
     <div class="input-group"><div class="input-container">
         <select name="nivel" required><?php foreach(['FOLIATTI FAN','TREBOL','CORAZON','CORAZON PLUS','ESPADA','ESPADA PLUS','DIAMANTE','DIAMANTE PLUS'] as $n): ?>

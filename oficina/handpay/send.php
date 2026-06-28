@@ -20,7 +20,7 @@ if (isset($_POST['send'])) {
         $hora       = trim($_POST['hora']);
         $cantidad   = trim($_POST['cantidad']);
         $blue_point = trim($_POST['blue_point']);
-        $cliente    = trim($_POST['cliente']);
+        $cliente    = mb_strtoupper(trim($_POST['cliente']), 'UTF-8');
         $tecnico    = trim($_POST['tecnico']);
         $gerente    = trim($_POST['gerente']);
 

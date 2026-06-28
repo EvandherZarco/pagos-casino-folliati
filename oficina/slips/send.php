@@ -17,10 +17,10 @@ if (isset($_POST['send'])) {
         echo "<h3 class='error'>Llena todos los campos</h3>";
     } else {
         $fecha      = trim($_POST['fecha']);
-        $nombre     = trim($_POST['nombre']);
+        $nombre     = mb_strtoupper(trim($_POST['nombre']), 'UTF-8');
         $creditos   = trim($_POST['creditos']);
         $cnr        = trim($_POST['cnr']);
-        $comentario = trim($_POST['comentario']);
+        $comentario = mb_strtoupper(trim($_POST['comentario']), 'UTF-8');
         $tipo       = trim($_POST['tipo']);
         $tecnico    = trim($_POST['tecnico']);
         $gerente    = trim($_POST['gerente']);

@@ -18,10 +18,10 @@ if (isset($_POST['send'])) {
     } else {
         $fecha     = trim($_POST['fecha']);
         $asset     = trim($_POST['asset']);
-        $proveedor = trim($_POST['proveedor']);
-        $cliente   = trim($_POST['cliente']);
-        $tarjeta   = trim($_POST['tarjeta']);
-        $nivel     = trim($_POST['nivel']);
+        $proveedor = mb_strtoupper(trim($_POST['proveedor']), 'UTF-8');
+        $cliente   = mb_strtoupper(trim($_POST['cliente']), 'UTF-8');
+        $tarjeta   = mb_strtoupper(trim($_POST['tarjeta']), 'UTF-8');
+        $nivel     = mb_strtoupper(trim($_POST['nivel']), 'UTF-8');
         $cantidad  = trim($_POST['cantidad']);
         $apuesta   = trim($_POST['apuesta']);
         $gerente   = trim($_POST['gerente']);

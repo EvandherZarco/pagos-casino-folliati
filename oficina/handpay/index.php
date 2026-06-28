@@ -29,7 +29,7 @@
     </div></div>
 
     <div class="input-group"><div class="input-container">
-        <input type="text" name="cliente" placeholder="Cliente" required>
+        <input type="text" name="cliente" placeholder="Cliente" required style="text-transform: uppercase">
     </div></div>
 
     <div class="input-group"><div class="input-container">

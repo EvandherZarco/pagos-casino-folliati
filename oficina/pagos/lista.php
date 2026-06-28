@@ -4,7 +4,7 @@ include("../conexion.php");
 $meses_archivo = ['','ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO',
                   'JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
 
-$carpeta = '\\\\172.26.0.149\\pagosmes\\';
+$carpeta = '\\\\10.10.10.132\\pagosmes\\';
 
 // Fecha operativa: antes de las 8am se considera el día anterior
 // (casino opera hasta madrugada, margen ampliado a 8am para importación)
@@ -34,7 +34,7 @@ if ($res && mysqli_num_rows($res) > 0) {
     if (file_exists($ruta)) {
         $contenido = file_get_contents($ruta);
         // Buscar la hoja del día
-        preg_match('/<Worksheet ss:Name="Día ' . $dia_num . '">(.*?)<\/Worksheet>/s', $contenido, $hoja_match);
+        preg_match('/<Worksheet ss:Name="' . $dia_num . '">(.*?)<\/Worksheet>/s', $contenido, $hoja_match);
         if ($hoja_match) {
             preg_match_all('/<Row>(.*?)<\/Row>/s', $hoja_match[1], $filas_match);
             $filas = $filas_match[1];
@@ -156,13 +156,13 @@ foreach ($pagos as $p) {
 
         <table>
             <tr>
-                <th>FECHA</th><th>ASSET</th><th>PROVEEDOR</th><th>CLIENTE</th>
+                <th>FECHA</th><th>HORA</th><th>ASSET</th><th>PROVEEDOR</th><th>CLIENTE</th>
                 <th>TARJETA</th><th>NIVEL</th><th>CANTIDAD</th><th>APUESTA</th>
                 <th>GERENTE</th><th>TÉCNICO</th><th>ACCIONES</th>
             </tr>
             <?php if ($count === 0): ?>
             <tr>
-                <td colspan="11" style="text-align:center; color:#94a3b8; padding:32px;">
+                <td colspan="12" style="text-align:center; color:#94a3b8; padding:32px;">
                     Sin registros para <?= date("d/m/Y", strtotime($fecha)) ?>
                 </td>
             </tr>
@@ -170,6 +170,7 @@ foreach ($pagos as $p) {
                 <?php foreach ($pagos as $p): ?>
                 <tr>
                     <td><?= date("d-m-Y", strtotime($p['fecha'])) ?></td>
+                    <td><?= htmlspecialchars(substr($p['hora'] ?? '', 0, 5)) ?></td>
                     <td><?= htmlspecialchars($p['asset']) ?></td>
                     <td><?= htmlspecialchars($p['proveedor']) ?></td>
                     <td><?= htmlspecialchars($p['cliente']) ?></td>
@@ -190,6 +191,7 @@ foreach ($pagos as $p) {
                 <?php foreach ($pagos as $p): ?>
                 <tr>
                     <td><?= htmlspecialchars($p['FECHA'] ?? '') ?></td>
+                    <td><?= htmlspecialchars($p['HORA'] ?? '') ?></td>
                     <td><?= htmlspecialchars($p['TERMINAL'] ?? '') ?></td>
                     <td><?= htmlspecialchars($p['PROVEEDOR'] ?? '') ?></td>
                     <td><?= htmlspecialchars($p['CLIENTE'] ?? '') ?></td>

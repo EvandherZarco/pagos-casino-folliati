@@ -48,12 +48,12 @@
     </div></div>
 
     <div class="input-group"><div class="input-container">
-        <input type="text" name="falla" id="falla" placeholder="Selecciona una falla" list="lista_fallas" autocomplete="off" required>
+        <input type="text" name="falla" id="falla" placeholder="Selecciona una falla" list="lista_fallas" autocomplete="off" required style="text-transform: uppercase">
         <datalist id="lista_fallas"></datalist>
     </div></div>
 
     <div class="input-group"><div class="input-container">
-        <input type="text" name="solucion" placeholder="Solución" required>
+        <input type="text" name="solucion" placeholder="Solución" required style="text-transform: uppercase">
     </div></div>
 
     <div class="input-group"><div class="input-container">
