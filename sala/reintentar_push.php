@@ -101,7 +101,13 @@ while ($fila = mysqli_fetch_assoc($eventos)) {
         continue;
     }
 
-    $endpoint = $fila['tipo'] === 'delete' ? 'eliminar_pago.php' : 'actualizar_pago.php';
+    if ($fila['tipo'] === 'delete') {
+        $endpoint = 'eliminar_pago.php';
+    } elseif ($fila['tipo'] === 'insert') {
+        $endpoint = 'recibir_pagos.php';
+    } else {
+        $endpoint = 'actualizar_pago.php';
+    }
     $resultado = enviarPushOficina($payload, $endpoint);
     $nuevosIntentos = (int)$fila['intentos'] + 1;
 

@@ -4,15 +4,15 @@
 //            reintentar_push.php (reintento periódico de envíos fallidos)
 //            editar.php / eliminar.php (sync de ediciones/eliminaciones post-cierre)
 //
-// Si cambian las IPs de oficina, solo hay que tocar este archivo.
+// Si cambia el hostname de oficina, solo hay que tocar este archivo.
 //
 // <!-- Desarrollado por Evandher Zarco (ZarcoMecatronics) - Junio 2026 -->
 
 const PUSH_MAX_INTENTOS = 20;
 
 /**
- * Push HTTP a oficina — Opción B: prueba dos IPs conocidas (la red salta
- * de subred por el DHCP de 15 min en oficina).
+ * Push HTTP a oficina — usa hostname de Windows en vez de IP fija,
+ * así no se rompe cuando el DHCP cambia la IP de oficina.
  *
  * $endpoint: nombre del archivo PHP destino en oficina (sin ruta).
  *            Default 'recibir_pagos.php' para no romper las llamadas existentes
@@ -25,16 +25,17 @@ function _pushConfig(): array {
     $archivo = __DIR__ . '/push_config.json';
     if (file_exists($archivo)) {
         $c = json_decode(file_get_contents($archivo), true);
-        if ($c && isset($c['ip1'], $c['ip2'])) return $c;
+        if ($c && isset($c['ip1'])) return $c;
     }
-    // Fallback a IPs conocidas si no existe el archivo de config
+    // Fallback: usar hostname de Windows de oficina en vez de IP fija
     return ['ip1' => '10.10.10.65', 'ip2' => '172.26.0.149', 'puerto' => '80'];
 }
 
 function enviarPushOficina(array $payload, string $endpoint = 'recibir_pagos.php'): array {
     $cfg    = _pushConfig();
     $puerto = $cfg['puerto'] ?? '80';
-    $ips    = [$cfg['ip1'], $cfg['ip2']];
+    // array_filter elimina valores null/vacíos para no intentar IPs inexistentes
+    $ips    = array_filter([$cfg['ip1'] ?? null, $cfg['ip2'] ?? null]);
     // ⚠️ Ajustar /reporte/ si la carpeta de oficina tiene otro nombre
 
     $json = json_encode($payload);
@@ -133,7 +134,8 @@ function guardarPushEvento($conex, int $idSala, string $tipo, array $payload, st
 function consultarPagosManualesOficina(string $fecha): array {
     $cfg    = _pushConfig();
     $puerto = $cfg['puerto'] ?? '80';
-    $ips    = [$cfg['ip1'], $cfg['ip2']];
+    // array_filter elimina valores null/vacíos para no intentar IPs inexistentes
+    $ips    = array_filter([$cfg['ip1'] ?? null, $cfg['ip2'] ?? null]);
 
     foreach ($ips as $ip) {
         $url = "http://{$ip}:{$puerto}/reporte/listar_manual.php?fecha=" . urlencode($fecha);

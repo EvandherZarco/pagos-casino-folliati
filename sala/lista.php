@@ -110,7 +110,7 @@ $total_combinado = (float)$total + (float)$total_manual;
   <a href="index.php">Registrar</a>
   <a href="lista.php" class="active">Consultar</a>
   <a href="historico.php">Histórico</a>
-  <a href="cerrar_dia.php">Cerrar Día</a>
+  <a href="exportar.php">Exportar</a>
   <a href="panel/login.php">Panel</a>
 </nav>
 
@@ -180,9 +180,6 @@ $total_combinado = (float)$total + (float)$total_manual;
           <tr>
             <td>
               <strong style="color:var(--gold);"><?= $p['pago_num'] ?></strong>
-              <?php if ((int)$p['cerrado'] === 1): ?>
-              <span class="badge-cerrado">CERRADO</span>
-              <?php endif; ?>
             </td>
             <td><span class="badge-turno"><?= $p['turno'] ?></span></td>
             <td><?= htmlspecialchars($p['asset']) ?></td>

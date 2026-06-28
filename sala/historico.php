@@ -1,113 +1,55 @@
 <?php
 require 'db.php';
-require_once 'xls_helpers.php';  // generarXLSMes(), compartida con cerrar_dia.php
 require_once 'push_helpers.php'; // consultarPagosManualesOficina() — temporal, mientras dure la captura manual en oficina
-require_once 'fecha_helpers.php'; // fechaOperativa() — IMPORTANTE: si se cambia la regla horaria, cambiar también en cerrar_dia.php
+require_once 'fecha_helpers.php'; // fechaOperativa() — IMPORTANTE: si se cambia la regla horaria, cambiar también en importar_sala.php (oficina)
 
 $meses_es = ['','Enero','Febrero','Marzo','Abril','Mayo','Junio',
              'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-$meses_archivo = ['','ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO',
-                  'JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
-
-$carpeta = '\\\\172.26.0.149\\pagosmes\\';
 
 $_fecha_op = fechaOperativa();
 $mes_sel  = (int)($_GET['mes']  ?? date('n', strtotime($_fecha_op)));
 $anio_sel = (int)($_GET['anio'] ?? date('Y', strtotime($_fecha_op)));
 $dia_sel  = (int)($_GET['dia']  ?? 0);
 
-// --- Exportar a XLS (a demanda, cualquier mes) ---
-$exportar_resultado = null;
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['exportar'])) {
-    $mes_exp  = (int)($_POST['mes']  ?? $mes_sel);
-    $anio_exp = (int)($_POST['anio'] ?? $anio_sel);
-    $nombre_exp = "PAGOS-{$meses_archivo[$mes_exp]}-{$anio_exp}.xls";
-    $ruta_exp   = $carpeta . $nombre_exp;
-
-    if (generarXLSMes($conex, $anio_exp, $mes_exp, $ruta_exp)) {
-        $exportar_resultado = "✅ Exportado correctamente: $nombre_exp";
-    } else {
-        $exportar_resultado = "⚠️ No hay pagos cerrados ese mes, o no se pudo escribir en: $carpeta";
-    }
-}
-
-// --- BD primero ---
+// --- BD ---
 $dias_res = mysqli_query($conex,
     "SELECT DISTINCT fecha, COUNT(*) as pagos, SUM(cantidad) as total
-     FROM pagos WHERE YEAR(fecha)=$anio_sel AND MONTH(fecha)=$mes_sel AND cerrado=1
+     FROM pagos WHERE YEAR(fecha)=$anio_sel AND MONTH(fecha)=$mes_sel
      GROUP BY fecha ORDER BY fecha ASC"
 );
 $dias_bd = [];
 while ($r = mysqli_fetch_assoc($dias_res)) $dias_bd[] = $r;
 
-// --- Si no hay BD, buscar XLS ---
-$nombre_archivo = "PAGOS-{$meses_archivo[$mes_sel]}-{$anio_sel}.xls";
-$ruta_archivo   = $carpeta . $nombre_archivo;
-$dias_xls       = [];
-$fuente         = 'bd';
-
-if (empty($dias_bd) && file_exists($ruta_archivo)) {
-    $fuente   = 'xls';
-    $contenido = file_get_contents($ruta_archivo);
-    preg_match_all('/<Worksheet ss:Name="(\d+)">/', $contenido, $matches);
-    $dias_xls = $matches[1];
-    sort($dias_xls, SORT_NUMERIC);
-}
-
 // --- Pagos del día ---
-$pagos_dia = [];
-$total_dia = 0;
-
-// --- Pagos manuales de oficina del día (NUEVO) ---
-// Independiente de si la fuente de sala es BD o XLS — los manuales
-// son un dato aparte que solo existe del lado de oficina.
+$pagos_dia        = [];
+$total_dia        = 0;
 $pagos_manuales_dia = [];
 $total_manual_dia = 0;
 
 if ($dia_sel) {
     $fecha_sel = sprintf('%04d-%02d-%02d', $anio_sel, $mes_sel, $dia_sel);
 
-    if ($fuente === 'bd') {
-        $res = mysqli_query($conex,
-            "SELECT * FROM pagos WHERE fecha='$fecha_sel' AND cerrado=1 ORDER BY turno, pago_num"
-        );
-        while ($r = mysqli_fetch_assoc($res)) {
-            $pagos_dia[] = [
-                'PAGO'      => $r['pago_num'],
-                'TURNO'     => $r['turno'],
-                'TERMINAL'  => $r['asset'],
-                'PROVEEDOR' => $r['proveedor'],
-                'CANTIDAD'  => $r['cantidad'],
-                'NIVEL'     => $r['nivel'],
-                'CLIENTE'   => $r['cliente'],
-                'HORA'      => substr($r['hora'], 0, 5),
-                'TECNICO'   => $r['tecnico'],
-                'GERENTE'   => $r['gerente'],
-            ];
-        }
-    } else {
-        $contenido = $contenido ?? file_get_contents($ruta_archivo);
-        preg_match('/<Worksheet ss:Name="' . $dia_sel . '">(.*?)<\/Worksheet>/s', $contenido, $hoja_match);
-        if ($hoja_match) {
-            preg_match_all('/<Row>(.*?)<\/Row>/s', $hoja_match[1], $filas_match);
-            $encabezados = [];
-            foreach ($filas_match[1] as $i => $fila) {
-                preg_match_all('/<Data[^>]*>(.*?)<\/Data>/s', $fila, $celdas_match);
-                $celdas = array_map('strip_tags', $celdas_match[1]);
-                if ($i === 0) { $encabezados = $celdas; continue; }
-                if (empty(array_filter($celdas))) continue;
-                if (isset($celdas[0]) && strtoupper(trim($celdas[0])) === 'TOTAL DEL DÍA') continue;
-                $pago = [];
-                foreach ($encabezados as $j => $col) $pago[$col] = $celdas[$j] ?? '';
-                if (!empty($pago)) $pagos_dia[] = $pago;
-            }
-        }
+    $res = mysqli_query($conex,
+        "SELECT * FROM pagos WHERE fecha='$fecha_sel' ORDER BY turno, pago_num"
+    );
+    while ($r = mysqli_fetch_assoc($res)) {
+        $pagos_dia[] = [
+            'PAGO'      => $r['pago_num'],
+            'TURNO'     => $r['turno'],
+            'TERMINAL'  => $r['asset'],
+            'PROVEEDOR' => $r['proveedor'],
+            'CANTIDAD'  => $r['cantidad'],
+            'NIVEL'     => $r['nivel'],
+            'CLIENTE'   => $r['cliente'],
+            'HORA'      => substr($r['hora'], 0, 5),
+            'TECNICO'   => $r['tecnico'],
+            'GERENTE'   => $r['gerente'],
+        ];
     }
     $total_dia = array_sum(array_column($pagos_dia, 'CANTIDAD'));
 
-    // Pagos manuales de oficina para esta misma fecha — solo lectura.
     $pagos_manuales_dia = consultarPagosManualesOficina($fecha_sel);
-    $total_manual_dia = array_sum(array_column($pagos_manuales_dia, 'cantidad'));
+    $total_manual_dia   = array_sum(array_column($pagos_manuales_dia, 'cantidad'));
 }
 
 $total_combinado_dia = (float)$total_dia + (float)$total_manual_dia;
@@ -142,8 +84,7 @@ $total_combinado_dia = (float)$total_dia + (float)$total_manual_dia;
     .pagos-header h2 { font-family:'Barlow Condensed',sans-serif;font-size:1.3rem;color:var(--gold); }
     .total-badge { background:rgba(212,160,23,0.15);color:var(--gold);padding:6px 16px;border-radius:var(--radius);font-family:'IBM Plex Mono',monospace;font-size:0.95rem; }
     .fuente-badge { font-size:0.72rem;letter-spacing:1px;text-transform:uppercase;padding:3px 10px;border-radius:4px;margin-left:10px; }
-    .fuente-bd  { background:rgba(46,204,113,0.15);color:#2ecc71; }
-    .fuente-xls { background:rgba(52,152,219,0.15);color:#3498db; }
+    .fuente-bd { background:rgba(46,204,113,0.15);color:#2ecc71; }
   </style>
 </head>
 <body>
@@ -156,7 +97,7 @@ $total_combinado_dia = (float)$total_dia + (float)$total_manual_dia;
   <a href="index.php">Registrar</a>
   <a href="lista.php">Consultar</a>
   <a href="historico.php" class="active">Histórico</a>
-  <a href="cerrar_dia.php">Cerrar Día</a>
+  <a href="exportar.php">Exportar</a>
   <a href="panel/login.php">Panel</a>
 </nav>
 
@@ -173,31 +114,19 @@ $total_combinado_dia = (float)$total_dia + (float)$total_manual_dia;
       <input type="number" name="anio" value="<?= $anio_sel ?>" min="2024" max="2030" style="width:90px;">
       <button type="submit" class="btn btn-gold">Buscar</button>
     </form>
-    <form method="post" class="filter-row" style="margin-top:10px;"
-          onsubmit="return confirm('¿Exportar/regenerar el archivo XLS de <?= $meses_es[$mes_sel] ?> <?= $anio_sel ?> con lo que hay en la base de datos?')">
-      <input type="hidden" name="mes" value="<?= $mes_sel ?>">
-      <input type="hidden" name="anio" value="<?= $anio_sel ?>">
-      <button type="submit" name="exportar" class="btn btn-ghost">📤 Exportar <?= $meses_es[$mes_sel] ?> a XLS</button>
-    </form>
-    <?php if ($exportar_resultado): ?>
-    <p style="margin-top:10px;font-size:0.88rem;"><?= htmlspecialchars($exportar_resultado) ?></p>
-    <?php endif; ?>
   </div>
 
   <div class="form-section" style="margin-bottom:20px;">
     <div style="font-family:'Barlow Condensed',sans-serif;font-size:0.78rem;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,0.5);margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--border);">
       <?= $meses_es[$mes_sel] ?> <?= $anio_sel ?>
-      <?php if ($fuente === 'xls'): ?>
-        <span class="fuente-badge fuente-xls">Archivo</span>
-      <?php elseif (!empty($dias_bd)): ?>
+      <?php if (!empty($dias_bd)): ?>
         <span class="fuente-badge fuente-bd">Base de datos</span>
       <?php endif; ?>
     </div>
 
-    <?php if (empty($dias_bd) && empty($dias_xls)): ?>
+    <?php if (empty($dias_bd)): ?>
       <p class="sin-dias">Sin registros para este mes.</p>
-
-    <?php elseif ($fuente === 'bd'): ?>
+    <?php else: ?>
       <div class="dias-grid">
         <?php foreach ($dias_bd as $d):
           $d_num = (int)date('j', strtotime($d['fecha']));
@@ -209,17 +138,6 @@ $total_combinado_dia = (float)$total_dia + (float)$total_manual_dia;
         </a>
         <?php endforeach; ?>
       </div>
-
-    <?php else: ?>
-      <div class="dias-grid">
-        <?php foreach ($dias_xls as $d):
-          $activo = $dia_sel === (int)$d ? 'active' : '';
-        ?>
-        <a href="?mes=<?=$mes_sel?>&anio=<?=$anio_sel?>&dia=<?=$d?>" class="dia-btn <?=$activo?>">
-          <span class="dia-num"><?=$d?></span>
-        </a>
-        <?php endforeach; ?>
-      </div>
     <?php endif; ?>
   </div>
 
@@ -227,9 +145,7 @@ $total_combinado_dia = (float)$total_dia + (float)$total_manual_dia;
   <div class="form-section">
     <div class="pagos-header">
       <h2>Día <?= $dia_sel ?> de <?= $meses_es[$mes_sel] ?></h2>
-      <span class="total-badge">
-        Total: $<?= number_format($total_combinado_dia, 2) ?>
-      </span>
+      <span class="total-badge">Total: $<?= number_format($total_combinado_dia, 2) ?></span>
     </div>
     <?php if ($total_manual_dia > 0): ?>
     <p style="font-size:0.75rem;color:var(--text-muted);margin:-8px 0 14px;">

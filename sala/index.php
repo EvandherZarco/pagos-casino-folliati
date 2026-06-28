@@ -1,25 +1,26 @@
 <?php
 require 'db.php';
 require_once 'fecha_helpers.php'; // fechaOperativa() — la fecha real del registro debe respetar el corte de 4am/2am
+require_once 'push_helpers.php';  // enviarPushOficina(), guardarPushEvento()
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $turno       = mysqli_real_escape_string($conex, $_POST['turno'] ?? '');
-    $asset       = mysqli_real_escape_string($conex, $_POST['asset'] ?? '');
-    $modelo      = mysqli_real_escape_string($conex, $_POST['modelo'] ?? '');
+    $turno        = mysqli_real_escape_string($conex, $_POST['turno'] ?? '');
+    $asset        = mysqli_real_escape_string($conex, $_POST['asset'] ?? '');
+    $modelo       = mysqli_real_escape_string($conex, $_POST['modelo'] ?? '');
     $numero_serie = mysqli_real_escape_string($conex, $_POST['numero_serie'] ?? '');
-    $proveedor   = mysqli_real_escape_string($conex, $_POST['proveedor'] ?? '');
-    $cantidad    = floatval($_POST['cantidad'] ?? 0);
-    $apuesta     = floatval($_POST['apuesta'] ?? 0);
-    $nivel       = mysqli_real_escape_string($conex, $_POST['nivel'] ?? '');
-    $cliente     = mysqli_real_escape_string($conex, mb_strtoupper(trim($_POST['cliente'] ?? ''), 'UTF-8'));
-    $id_cliente  = mysqli_real_escape_string($conex, mb_strtoupper(trim($_POST['id_cliente'] ?? ''), 'UTF-8'));
-    $tecnico     = mysqli_real_escape_string($conex, $_POST['tecnico'] ?? '');
-    $gerente     = mysqli_real_escape_string($conex, $_POST['gerente'] ?? '');
-    $fecha       = fechaOperativa(); // antes: date('Y-m-d') — causaba pagos "huérfanos" después de medianoche
-    $hora        = date('H:i:s');
-    $unidad      = UNIDAD;
+    $proveedor    = mysqli_real_escape_string($conex, $_POST['proveedor'] ?? '');
+    $cantidad     = floatval($_POST['cantidad'] ?? 0);
+    $apuesta      = floatval($_POST['apuesta'] ?? 0);
+    $nivel        = mysqli_real_escape_string($conex, $_POST['nivel'] ?? '');
+    $cliente      = mysqli_real_escape_string($conex, mb_strtoupper(trim($_POST['cliente'] ?? ''), 'UTF-8'));
+    $id_cliente   = mysqli_real_escape_string($conex, mb_strtoupper(trim($_POST['id_cliente'] ?? ''), 'UTF-8'));
+    $tecnico      = mysqli_real_escape_string($conex, $_POST['tecnico'] ?? '');
+    $gerente      = mysqli_real_escape_string($conex, $_POST['gerente'] ?? '');
+    $fecha        = fechaOperativa(); // antes: date('Y-m-d') — causaba pagos "huérfanos" después de medianoche
+    $hora         = date('H:i:s');
+    $unidad       = UNIDAD;
 
-    // Número de pago: siguiente en este turno hoy
+    // Número de pago: siguiente del día (renumerar.php lo reordena por hora si se edita)
     $res = mysqli_fetch_assoc(mysqli_query($conex,
         "SELECT COALESCE(MAX(pago_num),0)+1 AS n FROM pagos WHERE fecha='$fecha'"
     ));
@@ -30,6 +31,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
          VALUES ('$pago_num','$turno','$asset','$modelo','$numero_serie','$unidad','$cantidad','$proveedor','$nivel','$cliente','$id_cliente','$apuesta','$fecha','$hora','$tecnico','$gerente')"
     );
     $id = mysqli_insert_id($conex);
+
+    // Push inmediato a oficina
+    $meses_es = ['','ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
+    $archivo_nombre = "PAGOS-{$meses_es[(int)date('n', strtotime($fecha))]}-{$anio}";
+    $dia_num_str    = (string)(int)date('j', strtotime($fecha));
+
+    $fila_payload = [
+        'id_sala'      => $id,
+        'pago'         => $pago_num,
+        'turno'        => $_POST['turno'],
+        'asset'        => $_POST['asset'],
+        'unidad'       => $unidad,
+        'proveedor'    => $_POST['proveedor'],
+        'modelo'       => $_POST['modelo'],
+        'numero_serie' => $_POST['numero_serie'],
+        'cantidad'     => $cantidad,
+        'apuesta'      => $apuesta,
+        'nivel'        => $_POST['nivel'],
+        'cliente'      => mb_strtoupper(trim($_POST['cliente'] ?? ''), 'UTF-8'),
+        'tarjeta'      => mb_strtoupper(trim($_POST['id_cliente'] ?? ''), 'UTF-8'),
+        'fecha'        => $fecha,
+        'hora'         => $hora,
+        'tecnico'      => $_POST['tecnico'],
+        'gerente'      => $_POST['gerente'],
+    ];
+
+    $push_payload = [
+        'archivo' => $archivo_nombre,
+        'dia'     => $dia_num_str,
+        'filas'   => [$fila_payload],
+    ];
+
+    $resultado = enviarPushOficina($push_payload, 'recibir_pagos.php');
+    if (!$resultado['ok']) {
+        guardarPushEvento($conex, $id, 'insert', $push_payload, $resultado['error']);
+    }
+
     header("Location: imprimir.php?id=$id");
     exit;
 }
@@ -52,7 +90,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <a href="index.php" class="active">Registrar</a>
   <a href="lista.php">Consultar</a>
   <a href="historico.php">Histórico</a>
-  <a href="cerrar_dia.php">Cerrar Día</a>
+  <a href="exportar.php">Exportar</a>
   <a href="panel/login.php">Panel</a>
 </nav>
 
@@ -145,7 +183,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           <label>Gerente</label>
           <select name="gerente" required>
             <option value="">Selecciona gerente</option>
-            <?php foreach(['KOSBY HERNANDEZ','GERENTE 2','GERENTE 3'] as $g): ?>
+            <?php foreach(['GERENTE 1','GERENTE 2','GERENTE 3'] as $g): ?>
             <option value="<?= $g ?>"><?= $g ?></option>
             <?php endforeach; ?>
           </select>

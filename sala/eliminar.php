@@ -10,21 +10,20 @@ if (empty($_SESSION['panel_usuario'])) {
     exit;
 }
 
-$id = (int)($_GET['id'] ?? 0);
+$id     = (int)($_GET['id'] ?? 0);
+$origen = $_GET['origen'] ?? '';
+
 if ($id) {
-    $r = mysqli_fetch_assoc(mysqli_query($conex, "SELECT fecha, cerrado FROM pagos WHERE id=$id"));
+    $r = mysqli_fetch_assoc(mysqli_query($conex, "SELECT fecha FROM pagos WHERE id=$id"));
     mysqli_query($conex, "DELETE FROM pagos WHERE id=$id");
 
     if ($r) {
-        // Si el pago ya estaba cerrado (ya viajó a oficina alguna vez),
-        // avisarle que se eliminó. Oficina NO lo borra físico — lo marca
-        // como anulado, conservando rastro para auditoría.
-        if ((int)$r['cerrado'] === 1) {
-            $payloadDelete = ['id_sala' => $id, 'motivo' => 'Eliminado desde sala'];
-            $resultado = enviarPushOficina($payloadDelete, 'eliminar_pago.php');
-            if (!$resultado['ok']) {
-                guardarPushEvento($conex, $id, 'delete', $payloadDelete, $resultado['error']);
-            }
+        // Siempre avisar a oficina — si el pago nunca viajó, oficina
+        // no encontrará el id_sala y lo ignorará sin explotar.
+        $payloadDelete = ['id_sala' => $id, 'motivo' => 'Eliminado desde sala'];
+        $resultado = enviarPushOficina($payloadDelete, 'eliminar_pago.php');
+        if (!$resultado['ok']) {
+            guardarPushEvento($conex, $id, 'delete', $payloadDelete, $resultado['error']);
         }
 
         // Renumera el resto del día Y resincroniza los pagos cerrados
@@ -32,5 +31,6 @@ if ($id) {
         renumerar_dia($conex, $r['fecha']);
     }
 }
-header('Location: lista.php');
+
+header('Location: ' . ($origen === 'panel' ? 'panel/index.php' : 'lista.php'));
 exit;

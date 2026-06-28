@@ -1,11 +1,9 @@
 <?php
 // renumerar.php — Renumera folios de un día y resincroniza con oficina
-// los pagos ya cerrados de ese mismo día (porque renumerar_dia() puede
-// cambiar el pago_num de filas que NO se tocaron directamente, si vienen
-// después en orden de hora — confirmado: renumera TODO el día, no solo
-// la fila editada/borrada).
+// todos los pagos de ese día (ya no hay distinción cerrado/abierto).
 //
-// Requiere push_helpers.php (enviarPushOficina, guardarPushEvento).
+// Se llama desde editar.php y eliminar.php cuando cambia la hora
+// o se borra un pago, porque renumerar_dia() afecta TODO el día.
 //
 // <!-- Desarrollado por Evandher Zarco (ZarcoMecatronics) - Junio 2026 -->
 
@@ -14,7 +12,7 @@ require_once __DIR__ . '/push_helpers.php';
 function renumerar_dia($conex, $fecha) {
     $fecha = mysqli_real_escape_string($conex, $fecha);
 
-    // 1. Renumerar (igual que antes, sin cambios en esta parte)
+    // 1. Renumerar por hora (y por id como desempate)
     $res = mysqli_query($conex,
         "SELECT id FROM pagos WHERE fecha='$fecha' ORDER BY hora, id"
     );
@@ -24,14 +22,11 @@ function renumerar_dia($conex, $fecha) {
         $num++;
     }
 
-    // 2. Resincronizar con oficina TODOS los pagos de este día que ya
-    //    estaban cerrados (cerrado=1) — para tu volumen (10 o menos por
-    //    día) es más barato y más seguro que calcular cuáles folios
-    //    realmente cambiaron.
-    $resCerrados = mysqli_query($conex,
-        "SELECT * FROM pagos WHERE fecha='$fecha' AND cerrado=1"
+    // 2. Resincronizar TODOS los pagos del día con oficina
+    $resTodos = mysqli_query($conex,
+        "SELECT * FROM pagos WHERE fecha='$fecha'"
     );
-    while ($p = mysqli_fetch_assoc($resCerrados)) {
+    while ($p = mysqli_fetch_assoc($resTodos)) {
         $payload = [
             'id_sala'      => (int) $p['id'],
             'pago'         => $p['pago_num'],
@@ -45,7 +40,7 @@ function renumerar_dia($conex, $fecha) {
             'apuesta'      => $p['apuesta'],
             'nivel'        => $p['nivel'],
             'cliente'      => $p['cliente'],
-            'tarjeta'      => $p['id_cliente'], // mismo mapeo que cerrar_dia.php
+            'tarjeta'      => $p['id_cliente'],
             'fecha'        => $p['fecha'],
             'hora'         => $p['hora'],
             'tecnico'      => $p['tecnico'],

@@ -1,4 +1,5 @@
 <?php
+date_default_timezone_set('America/Mexico_City');
 /* <!-- Desarrollado por Evandher Zarco (ZarcoMecatronics) - Mayo 2026 --> */
 require_once __DIR__ . '/../db.php';
 require_once __DIR__ . '/../fecha_helpers.php';
@@ -11,11 +12,9 @@ $fecha_hoy = fechaOperativa();
 
 // --- Resumen del día ---
 $res_dia = mysqli_fetch_assoc(mysqli_query($conex,
-    "SELECT COUNT(*) as total_pagos, COALESCE(SUM(cantidad),0) as total_monto,
-     MAX(cerrado) as hay_cerrado, MIN(cerrado) as todo_abierto
+    "SELECT COUNT(*) as total_pagos, COALESCE(SUM(cantidad),0) as total_monto
      FROM pagos WHERE fecha='$fecha_hoy'"
 ));
-$dia_cerrado = $res_dia && (int)$res_dia['hay_cerrado'] === 1 && (int)$res_dia['todo_abierto'] === 1;
 
 // --- Estado push_pendiente ---
 $pend = mysqli_fetch_assoc(mysqli_query($conex,
@@ -136,10 +135,6 @@ $ultimo_reintento = mysqli_fetch_assoc(mysqli_query($conex,
       <div class="card-label">Total del día</div>
       <div class="card-value" style="font-size:1.4rem;">$<?= number_format((float)($res_dia['total_monto'] ?? 0), 2) ?></div>
     </div>
-    <div class="card <?= $dia_cerrado ? 'ok' : 'warn' ?>">
-      <div class="card-label">Estado del día</div>
-      <div class="card-value" style="font-size:1.2rem;"><?= $dia_cerrado ? '✓ CERRADO' : '● ABIERTO' ?></div>
-    </div>
   </div>
 
   <!-- PAGOS DEL DÍA -->
@@ -163,9 +158,7 @@ $ultimo_reintento = mysqli_fetch_assoc(mysqli_query($conex,
         <tbody>
           <?php while ($p = mysqli_fetch_assoc($pagos_res)): ?>
           <tr>
-            <td><strong style="color:var(--gold)"><?= $p['pago_num'] ?></strong>
-              <?php if ((int)$p['cerrado']): ?><span style="font-size:0.62rem;color:#2ecc71;border:1px solid #2ecc71;border-radius:4px;padding:1px 5px;margin-left:4px;">CERRADO</span><?php endif; ?>
-            </td>
+            <td><strong style="color:var(--gold)"><?= $p['pago_num'] ?></strong></td>
             <td><span class="badge-turno"><?= $p['turno'] ?></span></td>
             <td><?= htmlspecialchars($p['asset']) ?></td>
             <td><?= htmlspecialchars($p['cliente']) ?></td>
@@ -176,11 +169,11 @@ $ultimo_reintento = mysqli_fetch_assoc(mysqli_query($conex,
             <td style="display:flex;gap:6px;">
               <a href="../imprimir.php?id=<?= $p['id'] ?>" class="btn btn-ghost" style="font-size:0.8rem;padding:5px 10px;" title="Imprimir">🖨</a>
               <a href="../editar.php?id=<?= $p['id'] ?>&origen=panel" class="btn btn-ghost" style="font-size:0.8rem;padding:5px 10px;" title="Editar">✏️</a>
-              <a href="../eliminar.php?id=<?= $p['id'] ?>"
+              <a href="../eliminar.php?id=<?= $p['id'] ?>&origen=panel"
                  class="btn btn-ghost"
                  style="font-size:0.8rem;padding:5px 10px;color:#e74c3c;border-color:#e74c3c;"
                  title="Eliminar"
-                 onclick="return confirm('¿Eliminar este pago?<?= (int)$p['cerrado'] === 1 ? '\n\nYa está cerrado y sincronizado con oficina — se notificará el borrado.' : '' ?>')">🗑️</a>
+                 onclick="return confirm('¿Eliminar este pago?')">🗑️</a>
             </td>
           </tr>
           <?php endwhile; ?>
