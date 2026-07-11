@@ -56,6 +56,9 @@
             <option value="GERENTE 1">GERENTE 1</option>
             <option value="GERENTE 2">GERENTE 2</option>
             <option value="GERENTE 3">GERENTE 3</option>
+            <option value="GERENTE 4 (MULTI)">GERENTE 4 (MULTI)</option>
+            <option value="GERENTE 5 (MULTI)">GERENTE 5 (MULTI)</option>
+            <option value="GERENTE 6 (MULTI)">GERENTE 6 (MULTI)</option>
         </select>
     </div></div>
 
