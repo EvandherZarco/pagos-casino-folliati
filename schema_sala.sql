@@ -2,9 +2,6 @@
 -- Schema: pagos_sala
 -- App: Registro de Pagos — Sala (ZarcoMecatronics)
 -- Versión: 1.0 — junio 2026
--- Instrucciones: crear la BD pagos_sala, seleccionarla, y ejecutar este archivo.
--- ⚠️  Ajustar la constante UNIDAD en db.php con el nombre de la unidad/casino.
--- ⚠️  Ajustar las IPs de oficina en push_helpers.php (o desde el panel técnico).
 -- ============================================================
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
